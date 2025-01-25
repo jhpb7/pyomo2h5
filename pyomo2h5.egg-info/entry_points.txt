@@ -1,0 +1,2 @@
+[console_scripts]
+save-hdf5 = pyomo2h5.save_hdf5:save_h5

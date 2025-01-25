@@ -27,7 +27,7 @@ def convert_to_string_array(data):
             return np.array([str(item).encode('ascii', 'ignore') for item in data], dtype=f'S{max_length}')
     elif isinstance(data, str):
         # Single string
-        return np.string_(data.encode('ascii', 'ignore'))
+        return np.bytes_(data.encode('ascii', 'ignore'))
     return data
 
 def recursively_save_dict_contents_to_group(h5file, path, dic):
