@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="pyomo_to_hdf5",  # New package name
-    version="0.1",  # Version
+    name="pyomo2h5",  # New package name
+    version="0.2",  # Version
     description="A utility for saving Pyomo models and results to HDF5 format.",  # Short description
     author="Your Name",  # Your name
     author_email="your.email@example.com",  # Your email
@@ -16,7 +16,7 @@ setup(
     entry_points={
         "console_scripts": [
             # Example command-line script: save-hdf5 runs the `save_h5` function
-            "save-hdf5=pyomo_to_hdf5.save_hdf5:save_h5",
+            "save-hdf5=pyomo2h5.save_hdf5:save_h5",
         ]
     },
     classifiers=[
