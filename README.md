@@ -20,18 +20,17 @@ import pyomo.environ as pyo
 import pyomo_to_hdf5 as hdf5_saver
 import h5py
 
-# Create a simple Pyomo model
 model = pyo.ConcreteModel()
 model.x = pyo.Var(bounds=(0, 10), initialize=5)
 model.y = pyo.Var(bounds=(0, 10), initialize=3)
 model.obj = pyo.Objective(expr=model.x**2 + model.y**2)
 model.c1 = pyo.Constraint(expr=model.x + model.y <= 10)
 
-# Solve the model
+
 solver = pyo.SolverFactory('glpk')
 results = solver.solve(model)
 
-# Save the model and results to an HDF5 file
+
 with h5py.File("model_results.h5", "w") as h5file:
     hdf5_saver.save_h5(model, results, h5file.name)
 
@@ -64,6 +63,7 @@ with h5py.File("model_results.h5", "r") as h5file:
 
 
 
+
 Directory Structure
 
 pyomo-to-hdf5/
@@ -76,7 +76,7 @@ pyomo-to-hdf5/
 └── test                         # Example tests and usage scripts
 
 
-Authors:
+#Authors:
 
 Ashar Pasha
 Julius Breuer
