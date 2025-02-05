@@ -178,7 +178,7 @@ def save_components_as_structured_array(instance, h5file, component_type, group_
             comp_name = str(component.name)
 
             # Enhanced regex to parse component names
-            match = re.match(r"scenario\[(?:'(\d+)'|(\d+))\]\.(.+)", comp_name)
+            match = re.match(r"scenario\[(?:'([^']+)'|([^]]+))\]\.(.+)", comp_name)
             if match:
                 scenario_number = match.group(1) or match.group(
                     2
@@ -332,7 +332,7 @@ def save_components_as_structured_array_for_constraints(instance, h5file, group_
             comp_name = str(component.name)
 
             # Enhanced regex to parse variable names
-            match = re.match(r"scenario\[(?:'(\d+)'|(\d+))\]\.(.+)", comp_name)
+            match = re.match(r"scenario\[(?:'([^']+)'|([^]]+))\]\.(.+)", comp_name)
             if match:
                 # Extract scenario and the remaining variable hierarchy
                 scenario_number = match.group(1) or match.group(
