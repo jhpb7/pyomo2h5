@@ -1,4 +1,4 @@
-Metadata-Version: 2.2
+Metadata-Version: 2.4
 Name: pyomo2h5
 Version: 0.2
 Summary: A utility for saving Pyomo models and results to HDF5 format.

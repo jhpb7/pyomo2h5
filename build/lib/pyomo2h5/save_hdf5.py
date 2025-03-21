@@ -1,6 +1,6 @@
 import os
 
-# import json
+import subprocess
 import re
 from collections.abc import Mapping
 from functools import reduce
@@ -421,6 +421,10 @@ def save_components_as_structured_array_for_constraints(instance, h5file, group_
             print(f"Error saving constraint {comp_name}: {e}")
 
 
+def get_git_hash():
+    return subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("utf-8").strip()
+
+
 def save_h5(
     instance,
     results,
@@ -428,6 +432,7 @@ def save_h5(
     save_log_flag=True,
     save_constraint_flag=True,
     pickle_flag=True,
+    git_flag=True,
 ):
     """
     Saves all components of a Pyomo model instance and solver results to an HDF5 file.
@@ -462,6 +467,9 @@ def save_h5(
                 log_content = file.read()
             h5file.create_dataset("solver_log_file", data=log_content.encode("utf-8"))
             os.remove(filepath + ".log")
+        if git_flag:
+            git_hash = get_git_hash()
+            h5file.create_dataset("git_hash", data=git_hash)
 
 
 def load_instance_from_h5(filepath):
