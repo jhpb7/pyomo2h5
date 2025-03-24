@@ -139,14 +139,14 @@ def assign_default_unit(var_name):
     Returns:
         str: The assigned unit (e.g., "Pa" for pressure), or an empty string if no match is found.
     """
-    if "pressure" in var_name.lower():
-        return "Pa"
-    elif "volume" in var_name.lower():
-        return "m³/s"
-    elif "power" in var_name.lower():
-        return "W"
-    else:
-        return ""
+    # if "pressure" in var_name.lower():
+    #     return "Pa"
+    # elif "volume" in var_name.lower():
+    #     return "m³/s"
+    # elif "power" in var_name.lower():
+    #     return "W"
+    # else:
+    return ""
 
 
 def save_components_as_structured_array(instance, h5file, component_type, group_name):
@@ -169,9 +169,6 @@ def save_components_as_structured_array(instance, h5file, component_type, group_
 
     main_group = group_name
     component_group = h5file.require_group(main_group)
-    scenario_group = component_group.require_group(
-        "Scenario"
-    )  # Top-level Scenario group
 
     for component in instance.component_objects(component_type, active=True):
         try:
@@ -243,6 +240,7 @@ def save_components_as_structured_array(instance, h5file, component_type, group_
                             if component[index_tuple].value is not None
                             else np.nan
                         )
+                        structured_array["description"][i] = safe_encode(doc)
                     except ValueError:
                         structured_array["value"][i] = np.nan  # Graceful fallback
                 elif component_type == pyo.Expression:
@@ -250,6 +248,7 @@ def save_components_as_structured_array(instance, h5file, component_type, group_
                     structured_array["expression"][i] = expr_str.encode(
                         "ascii", "ignore"
                     )
+                    structured_array["description"][i] = safe_encode(doc)
                     try:
                         structured_array["value"][i] = pyo.value(
                             component[index_tuple].expr
@@ -269,6 +268,10 @@ def save_components_as_structured_array(instance, h5file, component_type, group_
 
             # Save structured array to HDF5
             if scenario_number:
+                if not "Scenario" in component_group:
+                    scenario_group = component_group.require_group(
+                        "Scenario"
+                    )  # Top-level Scenario group
                 current_group = scenario_group.require_group(scenario_number)
                 for part in path_parts[
                     :-1
