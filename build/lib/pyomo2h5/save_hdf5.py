@@ -139,14 +139,14 @@ def assign_default_unit(var_name):
     Returns:
         str: The assigned unit (e.g., "Pa" for pressure), or an empty string if no match is found.
     """
-    if "pressure" in var_name.lower():
-        return "Pa"
-    elif "volume" in var_name.lower():
-        return "m³/s"
-    elif "power" in var_name.lower():
-        return "W"
-    else:
-        return ""
+    # if "pressure" in var_name.lower():
+    #     return "Pa"
+    # elif "volume" in var_name.lower():
+    #     return "m³/s"
+    # elif "power" in var_name.lower():
+    #     return "W"
+    # else:
+    return ""
 
 
 def save_components_as_structured_array(instance, h5file, component_type, group_name):
@@ -169,9 +169,6 @@ def save_components_as_structured_array(instance, h5file, component_type, group_
 
     main_group = group_name
     component_group = h5file.require_group(main_group)
-    scenario_group = component_group.require_group(
-        "Scenario"
-    )  # Top-level Scenario group
 
     for component in instance.component_objects(component_type, active=True):
         try:
@@ -224,7 +221,9 @@ def save_components_as_structured_array(instance, h5file, component_type, group_
                 )
 
             # Create structured array
+            # doc = getattr(component, "doc", "")
             structured_array = np.zeros(len(indices), dtype=dtype)
+            # structured_array["description"] = safe_encode(doc)
             for i, index_tuple in enumerate(indices):
                 index_str = (
                     str(index_tuple)
@@ -234,7 +233,6 @@ def save_components_as_structured_array(instance, h5file, component_type, group_
                 structured_array[combined_header][i] = index_str.encode(
                     "ascii", "ignore"
                 )
-
                 # Handle variable, expression, or parameter values
                 if component_type == pyo.Var:
                     try:
@@ -243,13 +241,17 @@ def save_components_as_structured_array(instance, h5file, component_type, group_
                             if component[index_tuple].value is not None
                             else np.nan
                         )
+                        # doc = getattr(component, "doc", "")
+                        # structured_array["description"][i] = safe_encode(doc)
                     except ValueError:
+                        # print("error saving")
                         structured_array["value"][i] = np.nan  # Graceful fallback
                 elif component_type == pyo.Expression:
                     expr_str = str(component[index_tuple].expr)
                     structured_array["expression"][i] = expr_str.encode(
                         "ascii", "ignore"
                     )
+                    # structured_array["description"][i] = safe_encode(doc)
                     try:
                         structured_array["value"][i] = pyo.value(
                             component[index_tuple].expr
@@ -269,6 +271,10 @@ def save_components_as_structured_array(instance, h5file, component_type, group_
 
             # Save structured array to HDF5
             if scenario_number:
+                if "Scenario" not in component_group:
+                    scenario_group = component_group.require_group(
+                        "Scenario"
+                    )  # Top-level Scenario group
                 current_group = scenario_group.require_group(scenario_number)
                 for part in path_parts[
                     :-1
@@ -323,9 +329,6 @@ def save_components_as_structured_array_for_constraints(instance, h5file, group_
     """
     main_group = group_name
     component_group = h5file.require_group(main_group)
-    scenario_group = component_group.require_group(
-        "Scenario"
-    )  # Top-level Scenario group
 
     for component in instance.component_objects(pyo.Constraint, active=True):
         try:
@@ -383,6 +386,10 @@ def save_components_as_structured_array_for_constraints(instance, h5file, group_
 
             # Save structured array to HDF5
             if scenario_number:
+                if "Scenario" in component_group:
+                    scenario_group = component_group.require_group(
+                        "Scenario"
+                    )  # Top-level Scenario group
                 # Start at the scenario group
                 current_group = scenario_group.require_group(scenario_number)
 
@@ -581,34 +588,6 @@ def create_results_dict(instance, results):
     Returns:
         dict: A dictionary containing the results organized by category.
     """
-
-    def extract_data(component, category, res_dict):
-        """
-        Extracts data from a Pyomo component and adds it to the results dictionary.
-        """
-        if category == "Variable":
-            return  # Variables are handled separately
-        for item in component:
-            keys = split_index_name(str(item.name))
-            try:
-                val = pyo.value(item)
-                doc = getattr(item, "doc", "")
-                unit = extract_unit(doc) if doc else ""
-                value_dict = {
-                    "value": val,
-                    "unit": unit,
-                    "description": doc if doc else "",
-                }
-            except ValueError:
-                value_dict = {
-                    "value": "Variable not defined",
-                    "unit": "",
-                    "description": "",
-                }
-            res_dict[category] = update(
-                res_dict.get(category, {}),
-                create_dict_from_split_index(keys, value_dict),
-            )
 
     # Initialize results dictionary
     res_dict = {
