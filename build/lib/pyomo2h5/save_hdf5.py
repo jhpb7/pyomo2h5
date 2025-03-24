@@ -221,9 +221,7 @@ def save_components_as_structured_array(instance, h5file, component_type, group_
                 )
 
             # Create structured array
-            # doc = getattr(component, "doc", "")
             structured_array = np.zeros(len(indices), dtype=dtype)
-            # structured_array["description"] = safe_encode(doc)
             for i, index_tuple in enumerate(indices):
                 index_str = (
                     str(index_tuple)
@@ -241,8 +239,6 @@ def save_components_as_structured_array(instance, h5file, component_type, group_
                             if component[index_tuple].value is not None
                             else np.nan
                         )
-                        # doc = getattr(component, "doc", "")
-                        # structured_array["description"][i] = safe_encode(doc)
                     except ValueError:
                         # print("error saving")
                         structured_array["value"][i] = np.nan  # Graceful fallback
@@ -271,7 +267,7 @@ def save_components_as_structured_array(instance, h5file, component_type, group_
 
             # Save structured array to HDF5
             if scenario_number:
-                if "Scenario" not in component_group:
+                if "/Scenario" not in component_group:
                     scenario_group = component_group.require_group(
                         "Scenario"
                     )  # Top-level Scenario group
@@ -386,7 +382,7 @@ def save_components_as_structured_array_for_constraints(instance, h5file, group_
 
             # Save structured array to HDF5
             if scenario_number:
-                if "Scenario" in component_group:
+                if "/Scenario" not in component_group:
                     scenario_group = component_group.require_group(
                         "Scenario"
                     )  # Top-level Scenario group

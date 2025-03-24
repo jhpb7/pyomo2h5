@@ -267,7 +267,7 @@ def save_components_as_structured_array(instance, h5file, component_type, group_
 
             # Save structured array to HDF5
             if scenario_number:
-                if "Scenario" not in component_group:
+                if "/Scenario" not in component_group:
                     scenario_group = component_group.require_group(
                         "Scenario"
                     )  # Top-level Scenario group
@@ -382,7 +382,7 @@ def save_components_as_structured_array_for_constraints(instance, h5file, group_
 
             # Save structured array to HDF5
             if scenario_number:
-                if "Scenario" in component_group:
+                if "/Scenario" not in component_group:
                     scenario_group = component_group.require_group(
                         "Scenario"
                     )  # Top-level Scenario group
