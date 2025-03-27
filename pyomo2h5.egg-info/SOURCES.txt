@@ -2,6 +2,7 @@ README.md
 setup.py
 pyomo2h5/__init__.py
 pyomo2h5/save_hdf5.py
+pyomo2h5/yaml_handler.py
 pyomo2h5.egg-info/PKG-INFO
 pyomo2h5.egg-info/SOURCES.txt
 pyomo2h5.egg-info/dependency_links.txt
