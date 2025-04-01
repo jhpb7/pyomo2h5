@@ -16,8 +16,8 @@ setup(
     entry_points={
         "console_scripts": [
             # Example command-line script: save-hdf5 runs the `save_h5` function
-            "save-hdf5=pyomo2h5.save_hdf52:save_h5",
-            "save_dict_w_metadata=pyomo2h5.save_hdf52:save_dict_w_metadata",
+            "save-hdf5=pyomo2h5.save_hdf5:save_h5",
+            "save_dict_w_metadata=pyomo2h5.save_hdf5:save_dict_w_metadata",
             "load_yaml=pyomo2h5.yaml_handler:load_yaml",
             "save_yaml=pyomo2h5.yaml_handler:save_yaml",
         ]

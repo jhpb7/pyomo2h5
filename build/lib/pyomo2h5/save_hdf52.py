@@ -11,8 +11,18 @@ from functools import reduce
 
 
 class PyomoHDF5Saver:
-    def __init__(self, filepath, mode="a"):
+    def __init__(self, filepath, mode="a", force=False):
         self.filepath = filepath if filepath.endswith(".h5") else filepath + ".h5"
+
+        if os.path.exists(self.filepath) and not force and mode in ("w", "w-", "x"):
+            raise FileExistsError(
+                f"File '{self.filepath}' already exists. Use force=True to overwrite."
+            )
+
+        if os.path.exists(self.filepath) and not force and mode == "a":
+            # Still allow append, just warn (optional)
+            pass
+
         self.file = h5py.File(self.filepath, mode)
 
     def __enter__(self):
@@ -370,6 +380,13 @@ class PyomoHDF5Saver:
         pickled_data = self.file["pickled_pyomo_instance"][()]
         return cloudpickle.loads(pickled_data)
 
+    # === Tracking Methods ===
+
+    def save_tracked_constraints(self, tracker, group_name="TrackedConstraints"):
+        group = self.file.require_group(group_name)
+        for name, expr in tracker.constraint_log.items():
+            group.create_dataset(name, data=str(expr))
+
     # === Utility Methods ===
     def recursively_save_dict_contents_to_group(self, path, dic):
         """
@@ -562,3 +579,33 @@ class PyomoHDF5Saver:
     @staticmethod
     def create_dict_from_split_index(split_index, value):
         return reduce(lambda res, cur: {cur: res}, reversed(split_index), value)
+
+
+class ConstraintTracker:
+    def __init__(self):
+        self.constraint_log = {}
+        self.counter = 0
+
+    def add(self, model, constraint_expr, name=None):
+        """Add a constraint to the model and track it by name."""
+        cname = name or f"added_constraint_{self.counter}"
+        if cname in self.constraint_log:
+            raise ValueError(f"Constraint '{cname}' already exists.")
+        model.add_component(cname, pyo.Constraint(expr=constraint_expr))
+        self.constraint_log[cname] = constraint_expr
+        self.counter += 1
+
+    def delete(self, model, name):
+        """Remove a constraint by name from both model and tracker."""
+        if name not in self.constraint_log:
+            raise KeyError(f"Constraint '{name}' not found in tracker.")
+        if hasattr(model, name):
+            model.del_component(getattr(model, name))
+        del self.constraint_log[name]
+
+    def print_constraints(self):
+        """Print all tracked constraints and their expressions."""
+        if not self.constraint_log:
+            print("No constraints tracked.")
+        for name, expr in self.constraint_log.items():
+            print(f"{name}: {expr}")
