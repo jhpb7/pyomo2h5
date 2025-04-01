@@ -314,6 +314,30 @@ def save_components_as_structured_array(instance, h5file, component_type, group_
     #             print(f"  {index} = Uninitialized")
 
 
+def save_sets(instance, res_dict):
+    # Extract sets
+    for s in instance.component_data_objects(pyo.Set, active=True):
+        keys = split_index_name(s.name)
+        doc = getattr(s, "doc", "")
+        try:
+            if hasattr(s, "is_set_operator") and s.is_set_operator():
+                # For set operators like SetUnion, explicitly handle without descending
+                value = list(s) if hasattr(s, "__iter__") else []
+            else:
+                # For regular sets, get the data directly
+                value = list(s.data())
+        except AttributeError:
+            value = list(s.data())  # Fallback for simple sets
+
+        res_dict["Set"] = update(
+            res_dict["Set"],
+            create_dict_from_split_index(
+                keys, {"value": value, "unit": "", "description": doc}
+            ),
+        )
+    return res_dict
+
+
 def save_components_as_structured_array_for_constraints(instance, h5file, group_name):
     """
     Saves Pyomo constraints as structured arrays in an HDF5 file, organized by scenario.
@@ -432,6 +456,7 @@ def save_h5(
     instance,
     results,
     filepath,
+    solver_options=None,
     save_log_flag=True,
     save_constraint_flag=True,
     pickle_flag=True,
@@ -445,9 +470,21 @@ def save_h5(
         results (dict): The results dictionary containing the solver output.
         filepath (str): The file path where the HDF5 file will be saved.
     """
-    res_dict = create_results_dict(instance, results)
+
+    # Initialize results dictionary
+    res_dict = {
+        "Set": {},
+        "Parameter": {},
+        "Objective": {},
+        "Constraint": {},
+        "Expression": {},
+    }
+
+    res_dict = create_results_dict(results, solver_options, res_dict)
     res_dict = convert_scalarfloats_to_floats(res_dict)
     res_dict = replace_none_with_string(res_dict)
+
+    res_dict = save_sets(instance, res_dict)
 
     with h5py.File(filepath + ".h5", "w") as h5file:
         save_dict_to_hdf5(res_dict, h5file)
@@ -472,7 +509,49 @@ def save_h5(
             os.remove(filepath + ".log")
         if git_flag:
             git_hash = get_git_hash()
-            h5file.create_dataset("git_hash", data=git_hash)
+            h5file.create_dataset("Git Hash", data=git_hash)
+
+
+def save_dict_w_metadata(filename, data_dict, path_in_h5="/"):
+    with h5py.File(filename + ".h5", "a") as h5file:
+        save_dict_w_metadata_to_hdf5(h5file, data_dict, path_in_h5)
+
+
+def save_dict_w_metadata_to_hdf5(h5file, data_dict, path="/"):
+    """
+    Recursively saves a nested dictionary to an HDF5 file including metadata. The metadata can also be added for any other existing h5 group or dataset.
+
+    The data_dict should be as follows:
+    {"Metadata": {"Infos": "This will be metadata to the toplevel of the h5 file"}, "comment": {"Content": "This comes as data to the comment group", "Metadata": {"Info": "This will be the attribute Info and its text", "Written by": "Julius", "For": "Julius"}}}
+
+    Args:
+        h5file (h5py.File): An open HDF5 file object.
+        path (str): Current path in the HDF5 file (e.g., "/constraints").
+        data_dict (dict): Dictionary representing the group/data hierarchy.
+                          Keys can be group names, dataset names, or 'metadata'.
+    """
+
+    metadata = data_dict.get("Metadata", {})
+
+    # Save metadata to current path
+    if path in h5file:
+        grp = h5file[path]
+    else:
+        grp = h5file.create_group(path)
+    for key, val in metadata.items():
+        grp.attrs[key] = val
+
+    for key, val in data_dict.items():
+        if key == "Metadata":
+            continue
+        subpath = f"{path}/{key}"
+        if isinstance(val, dict) and "Content" in val.keys():
+            dset = grp.create_dataset(key, data=str(val["Content"]))
+            if isinstance(val, dict) and "Metadata" in val:
+                for meta_key, meta_val in val["Metadata"].items():
+                    dset.attrs[meta_key] = meta_val
+        if isinstance(val, dict):
+            save_dict_w_metadata_to_hdf5(h5file, val, subpath)
 
 
 def load_instance_from_h5(filepath):
@@ -513,7 +592,8 @@ def update(d, u):
 
 def split_index_name(name):
     """
-    Splits a variable name to separate indices (handles cases with periods and square brackets).
+    Splits a variable name to separate indices (handles cases with periods and square brackets),
+    but does not split if the period is between digits (e.g., '3.14').
 
     Args:
         name (str): The name of the variable.
@@ -521,8 +601,9 @@ def split_index_name(name):
     Returns:
         list: A list of split name components.
     """
-    name = re.split(r"\[|\]|(?<!\d)[\[\].](?!\d)", name)
-    return [x for x in name if x]
+    # Split on: '[' or ']', or '.' not between digits
+    parts = re.split(r"\[|\]|(?<!\d)\.(?!\d)", name)
+    return [x for x in parts if x]
 
 
 def create_dict_from_split_index(split_index, value):
@@ -573,52 +654,23 @@ def replace_none_with_string(obj):
         return obj
 
 
-def create_results_dict(instance, results):
+def create_results_dict(results, solver_options, res_dict):
     """
-    Creates a dictionary of model results, including sets, parameters, objectives, and constraints.
+    Creates a dictionary of model pyomo's results
 
     Args:
-        instance (pyomo.environ.ConcreteModel): The Pyomo model instance.
         results (dict): The results dictionary containing the solver output.
 
     Returns:
         dict: A dictionary containing the results organized by category.
     """
-
-    # Initialize results dictionary
-    res_dict = {
-        "Set": {},
-        "Parameter": {},
-        "Objective": {},
-        "Constraint": {},
-        "Expression": {},
-    }
-
-    # Extract sets
-    for s in instance.component_data_objects(pyo.Set, active=True):
-        keys = split_index_name(s.name)
-        doc = getattr(s, "doc", "")
-        try:
-            if hasattr(s, "is_set_operator") and s.is_set_operator():
-                # For set operators like SetUnion, explicitly handle without descending
-                value = list(s) if hasattr(s, "__iter__") else []
-            else:
-                # For regular sets, get the data directly
-                value = list(s.data())
-        except AttributeError:
-            value = list(s.data())  # Fallback for simple sets
-
-        res_dict["Set"] = update(
-            res_dict["Set"],
-            create_dict_from_split_index(
-                keys, {"value": value, "unit": "", "description": doc}
-            ),
-        )
     res_dict["Problem Definition"] = {
         k: v.get_value() for k, v in results["Problem"].items()
     }
-    res_dict["Solver Output"] = {
+    res_dict["Solver"] = {
         k: v.get_value() for k, v in results["Solver"][0].items() if k != "Statistics"
     }
+    if solver_options:
+        res_dict["Solver"]["Options"] = dict(solver_options)
 
     return res_dict
