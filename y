@@ -3,6 +3,7 @@ Uninstalling pyomo2h5-0.2:
   Would remove:
     /home/breuer/ventilation_system/env/bin/load_yaml
     /home/breuer/ventilation_system/env/bin/save-hdf5
+    /home/breuer/ventilation_system/env/bin/save_dict_w_metadata
     /home/breuer/ventilation_system/env/bin/save_yaml
     /home/breuer/ventilation_system/env/lib/python3.11/site-packages/hdf5_saver/*
     /home/breuer/ventilation_system/env/lib/python3.11/site-packages/pyomo-to-hdf5/*
