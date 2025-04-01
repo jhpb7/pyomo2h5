@@ -96,5 +96,6 @@ def save_yaml(filename, data):
     Safely dump data to yaml file. This code takes care of handling numpy-formated data structures etc
     """
     yaml = construct_yaml()
+    prepared_data = convert_numpy_to_native(data)
     with open(filename, "w") as f:
-        yaml.dump(data, f)
+        yaml.dump(prepared_data, f)
