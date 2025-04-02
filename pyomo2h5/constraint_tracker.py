@@ -6,12 +6,10 @@ class ConstraintTracker:
         self.constraint_log = {}
         self.counter = 0
 
-    def add(self, model, constraint_expr, name=None):
-        cname = name or f"added_constraint_{self.counter}"
+    def add(self, constraint_obj, name=None):
+        cname = name or constraint_obj.name
         if cname in self.constraint_log:
             raise ValueError(f"Constraint '{cname}' already exists.")
-        constraint_obj = pyo.Constraint(expr=constraint_expr)
-        model.add_component(cname, constraint_obj)
         self.constraint_log[cname] = constraint_obj
         self.counter += 1
 
