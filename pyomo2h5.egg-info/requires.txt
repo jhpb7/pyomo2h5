@@ -1,4 +1,5 @@
-h5py
-numpy
-pyomo
-ruamel.yaml
+pyomo>=6.4.4
+h5py>=3.8
+cloudpickle>=2.0.0
+ruamel.yaml>=0.17.21
+numpy>=1.21

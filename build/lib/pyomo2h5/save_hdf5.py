@@ -399,7 +399,7 @@ class PyomoHDF5Saver:
                 scenario, path_parts = self._parse_component_path(comp_name)
 
                 dtype = self._build_constraint_dtype()
-                structured_array = np.zeros(len(component.keys()), dtype=dtype)
+                structured_array = np.zeros(len(set(component.keys())), dtype=dtype)
                 self._fill_constraint_array(structured_array, component)
 
                 if scenario:
@@ -752,7 +752,7 @@ class PyomoHDF5Saver:
         else:
             return obj
 
-    def _create_results_dict(results, solver_options, res_dict):
+    def _create_results_dict(self, results, solver_options, res_dict):
         # Your logic here
         res_dict["Problem Definition"] = {
             k: v.get_value() for k, v in results["Problem"].items()

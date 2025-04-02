@@ -1,3 +1,0 @@
-[console_scripts]
-load_yaml = pyomo2h5.yaml_handler:load_yaml
-save_yaml = pyomo2h5.yaml_handler:save_yaml

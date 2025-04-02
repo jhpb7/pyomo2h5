@@ -7,11 +7,12 @@ Author-email: julius.breuer@tu-darmstadt.de
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
-Requires-Python: >=3.6
-Requires-Dist: h5py
-Requires-Dist: numpy
-Requires-Dist: pyomo
-Requires-Dist: ruamel.yaml
+Requires-Python: >=3.8
+Requires-Dist: pyomo>=6.4.4
+Requires-Dist: h5py>=3.8
+Requires-Dist: cloudpickle>=2.0.0
+Requires-Dist: ruamel.yaml>=0.17.21
+Requires-Dist: numpy>=1.21
 Dynamic: author
 Dynamic: author-email
 Dynamic: classifier

@@ -8,24 +8,16 @@ setup(
     author_email="julius.breuer@tu-darmstadt.de",  # Your email
     packages=find_packages(),  # Automatically find all packages
     install_requires=[
-        "h5py",  # HDF5 library
-        "numpy",  # NumPy for scientific computing
-        "pyomo",  # Pyomo library
-        "ruamel.yaml",  # YAML library for handling configurations
-    ],
-    entry_points={
-        "console_scripts": [
-            # Example command-line script: save-hdf5 runs the `save_h5` function
-            # "save-hdf5=pyomo2h5.save_hdf5:save_h5",
-            # "save_dict_w_metadata=pyomo2h5.save_hdf5:save_dict_w_metadata",
-            "load_yaml=pyomo2h5.yaml_handler:load_yaml",
-            "save_yaml=pyomo2h5.yaml_handler:save_yaml",
-        ]
-    },
+        "pyomo>=6.4.4",
+        "h5py>=3.8",
+        "cloudpickle>=2.0.0",
+        "ruamel.yaml>=0.17.21",
+        "numpy>=1.21",
+    ]
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.6",  # Minimum Python version
+    python_requires=">=3.8",  # Minimum Python version
 )
