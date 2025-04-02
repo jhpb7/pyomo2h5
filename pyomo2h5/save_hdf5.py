@@ -51,15 +51,15 @@ class PyomoHDF5Saver:
             "Expression": {},
         }
 
-        res_dict = self.create_results_dict(results, solver_options, res_dict)
+        res_dict = self._create_results_dict(results, solver_options, res_dict)
         res_dict = self.convert_scalarfloats_to_floats(res_dict)
         res_dict = self.replace_none_with_string(res_dict)
-        res_dict = self.save_sets(instance, res_dict)
+        res_dict = self._save_sets(instance, res_dict)
 
-        self.save_dict_to_hdf5(res_dict)
-        self.save_components(instance, pyo.Var, "Variable")
-        self.save_components(instance, pyo.Expression, "Expression")
-        self.save_components(instance, pyo.Param, "Parameter")
+        self._save_dict_to_hdf5(res_dict)
+        self._save_components(instance, pyo.Var, "Variable")
+        self._save_components(instance, pyo.Expression, "Expression")
+        self._save_components(instance, pyo.Param, "Parameter")
 
         if save_constraint_flag:
             self.save_constraints(instance)
@@ -85,14 +85,13 @@ class PyomoHDF5Saver:
             )
             self.file.create_dataset("Git Hash", data=git_hash)
 
-    def save_dict_to_hdf5(self, dic):
-        self.recursively_save_dict_contents_to_group("/", dic)
+    def _save_dict_to_hdf5(self, dic):
+        self._recursively_save_dict_contents_to_group("/", dic)
 
     def save_dict_with_metadata(self, data_dict, path="/"):
         self._save_dict_with_metadata(self.file, data_dict, path)
 
-    def save_components(self, instance, component_type, group_name):
-        # Wraps your `save_components_as_structured_array`
+    def _save_components(self, instance, component_type, group_name):
         def safe_encode(value, default=""):
             """
             Safely encodes a value to ASCII, replacing None with a default string.
@@ -243,7 +242,6 @@ class PyomoHDF5Saver:
                 print(f"Error saving component {comp_name}: {e}")
 
     def save_constraints(self, instance):
-        # Wraps `save_components_as_structured_array_for_constraints`
         """
         Saves Pyomo constraints as structured arrays in an HDF5 file, organized by scenario.
 
@@ -353,8 +351,7 @@ class PyomoHDF5Saver:
             except Exception as e:
                 print(f"Error saving constraint {comp_name}: {e}")
 
-    def save_sets(self, instance, res_dict):
-        # Your existing `save_sets` logic
+    def _save_sets(self, instance, res_dict):
         for s in instance.component_data_objects(pyo.Set, active=True):
             keys = self.split_index_name(s.name)
             doc = getattr(s, "doc", "")
@@ -388,7 +385,7 @@ class PyomoHDF5Saver:
             group.create_dataset(name, data=str(expr))
 
     # === Utility Methods ===
-    def recursively_save_dict_contents_to_group(self, path, dic):
+    def _recursively_save_dict_contents_to_group(self, path, dic):
         """
         Recursively saves the contents of a dictionary into an HDF5 group.
 
@@ -430,7 +427,7 @@ class PyomoHDF5Saver:
                             "ascii", "ignore"
                         )
                     else:
-                        self.recursively_save_dict_contents_to_group(
+                        self._recursively_save_dict_contents_to_group(
                             path + str(key) + "/", item
                         )
                 else:
@@ -537,8 +534,7 @@ class PyomoHDF5Saver:
         else:
             return obj
 
-    @staticmethod
-    def create_results_dict(results, solver_options, res_dict):
+    def _create_results_dict(results, solver_options, res_dict):
         # Your logic here
         res_dict["Problem Definition"] = {
             k: v.get_value() for k, v in results["Problem"].items()
