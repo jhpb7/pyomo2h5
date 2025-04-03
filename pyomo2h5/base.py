@@ -5,11 +5,12 @@ import numpy as np
 import cloudpickle
 from .instance_saver import InstanceSaver
 from .dict_saver import DictSaver
+from .log_saver import LogSaver
 from .utils import convert_scalarfloats, replace_none
 import pyomo.environ as pyo
 
 
-class PyomoHDF5Saver(InstanceSaver, DictSaver):
+class PyomoHDF5Saver(InstanceSaver, DictSaver, LogSaver):
     def __init__(self, filepath, mode="a", force=False):
         self.filepath = filepath if filepath.endswith(".h5") else filepath + ".h5"
         if os.path.exists(self.filepath) and not force and mode in ("w", "w-", "x"):
@@ -100,16 +101,6 @@ class PyomoHDF5Saver(InstanceSaver, DictSaver):
         self.file.create_dataset(
             "pickled_pyomo_instance", data=np.void(cloudpickle.dumps(instance))
         )
-
-    def _save_solver_log(self):
-        log_path = self.filepath.replace(".h5", ".log")
-        if os.path.exists(log_path):
-            with open(log_path, "r") as file:
-                log_content = file.read()
-            self.file.create_dataset(
-                "solver_log_file", data=log_content.encode("utf-8")
-            )
-            os.remove(log_path)
 
     def _save_git_hash(self):
         try:
