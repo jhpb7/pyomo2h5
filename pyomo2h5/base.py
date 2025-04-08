@@ -23,6 +23,28 @@ class PyomoHDF5Saver(InstanceSaver, DictSaver, LogSaver):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.file.close()
 
+    def solve_and_save_instance(
+        self,
+        instance,
+        solver,
+        solver_tee=True,
+        save_log_flag=True,
+        save_constraint_flag=True,
+        pickle_flag=True,
+        git_flag=True,
+    ):
+        solver.options["LogFile"] = self.filepath.replace("h5", "log")
+        results = solver.solve(instance, tee=solver_tee)
+        self.save_instance(
+            instance,
+            results,
+            solver.options,
+            save_log_flag,
+            save_constraint_flag,
+            pickle_flag,
+            git_flag,
+        )
+
     def save_instance(
         self,
         instance,
