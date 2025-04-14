@@ -1,7 +1,7 @@
 import os
 import numpy as np
-import h5py
 import re
+import gc
 
 
 class LogSaver:
@@ -13,7 +13,13 @@ class LogSaver:
             solver_group = self.file.require_group("Solver")
             solver_group.create_dataset("Log", data=log_content.encode("utf-8"))
             self._parse_log(log_path)
-            os.remove(log_path)
+
+            # Try to help the garbage collector close file handles if lingering
+            gc.collect()
+            try:
+                os.remove(log_path)
+            except PermissionError:
+                print(f"Could not delete {log_path}. File may still be in use.")
 
     def _parse_log(self, log_path, group_name="Solver", dataset_name="Convergence"):
         with open(log_path, "r") as f:
