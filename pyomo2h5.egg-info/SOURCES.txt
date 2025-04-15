@@ -5,7 +5,7 @@ pyomo2h5/base.py
 pyomo2h5/constraint_tracker.py
 pyomo2h5/dict_saver.py
 pyomo2h5/instance_saver.py
-pyomo2h5/save_hdf5.py
+pyomo2h5/log_saver.py
 pyomo2h5/utils.py
 pyomo2h5/yaml_handler.py
 pyomo2h5.egg-info/PKG-INFO

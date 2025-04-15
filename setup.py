@@ -13,7 +13,7 @@ setup(
         "cloudpickle>=2.0.0",
         "ruamel.yaml>=0.17.21",
         "numpy>=1.21",
-    ]
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
