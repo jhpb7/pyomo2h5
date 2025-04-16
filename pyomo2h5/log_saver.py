@@ -55,19 +55,22 @@ class LogSaver:
         for line in lines[start_index + 1 :]:
             if not line.strip():  # stop if the line is completely empty
                 break
-            tokens = [token.strip() for token in line.strip().split("|")]
-            # Find gap (%), then get the two values before and the time (with 's')
-            if tokens[0] == "time":
+            try:
+                tokens = [token.strip() for token in line.strip().split("|")]
+                # Find gap (%), then get the two values before and the time (with 's')
+                if tokens[0] == "time":
+                    continue
+                bestbd = float(tokens[-3])
+                time_str = re.sub(r"[a-zA-Z]", "", tokens[0])
+                time = float(time_str)
+                incumbent = float(tokens[-4])
+                if tokens[-2].endswith("%"):
+                    gap = float(tokens[-2].strip("%"))
+                else:
+                    gap = np.inf
+                data.append([incumbent, bestbd, gap, time])
+            except IndexError:
                 continue
-            bestbd = float(tokens[-3])
-            time_str = re.sub(r"[a-zA-Z]", "", tokens[0])
-            time = float(time_str)
-            incumbent = float(tokens[-4])
-            if tokens[-2].endswith("%"):
-                gap = float(tokens[-2].strip("%"))
-            else:
-                gap = np.inf
-            data.append([incumbent, bestbd, gap, time])
 
         if not data:
             raise ValueError(
