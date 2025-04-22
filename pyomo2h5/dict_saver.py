@@ -5,7 +5,7 @@ from .utils import safe_encode
 
 class DictSaver:
     def _save_structured_dict(
-        self, h5file: h5py.File, data_dict: dict, path: str
+        self, h5file: h5py.File, data_dict: dict, path: str = "/"
     ) -> None:
         """
         Recursively saves a regular dict structure into HDF5.
@@ -41,7 +41,7 @@ class DictSaver:
                     f"[Warning] Skipping unsupported type at '{subpath}': {type(val)}"
                 )
 
-    def _save_annotated_dict(self, data_dict: dict, path: str = "/") -> None:
+    def save_annotated_dict(self, data_dict: dict, path: str = "/") -> None:
         """
         Recursively saves annotated content (with optional Metadata) into HDF5.
 
@@ -76,7 +76,7 @@ class DictSaver:
                     dset.attrs[mk] = mv
 
             elif isinstance(val, dict):
-                self._save_annotated_dict(h5file, val, subpath)
+                self.save_annotated_dict(h5file, val, subpath)
 
             else:
                 print(f"[Warning] Unsupported format for annotated key '{key}'")
