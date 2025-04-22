@@ -57,7 +57,6 @@ class LogSaver:
                 break
             try:
                 tokens = [token.strip() for token in line.strip().split("|")]
-                # Find gap (%), then get the two values before and the time (with 's')
                 if tokens[0] == "time":
                     continue
                 bestbd = float(tokens[-3])
