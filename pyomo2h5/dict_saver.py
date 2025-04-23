@@ -1,6 +1,7 @@
 import h5py
 import numpy as np
 from .utils import safe_encode
+import json
 
 
 class DictSaver:
@@ -45,14 +46,23 @@ class DictSaver:
         """
         Recursively saves annotated content (with optional Metadata) into HDF5.
 
-        Structure:
+        Supports nested structure like:
             {
-                "MyNote": {
-                    "Content": "This is a note",
-                    "Metadata": {"Author": "You", "Date": "2025-04-01"}
+                "Notes": {
+                    "Content": "Some string or array",
+                    "Metadata": { ... }
                 },
-                "Another": {
-                    "Content": 42
+                ...
+            }
+
+        And also:
+            {
+                "postprocessing": {
+                    "Exact Power Consumption": {
+                        "Content": ...,
+                        "Metadata": { ... }
+                    },
+                    ...
                 }
             }
         """
@@ -61,7 +71,6 @@ class DictSaver:
 
         for key, val in data_dict.items():
             if key == "Metadata":
-                # Attach metadata to the current group
                 for mk, mv in val.items():
                     group.attrs[mk] = mv
                 continue
@@ -69,6 +78,7 @@ class DictSaver:
             subpath = f"{path}/{key}"
 
             if isinstance(val, dict) and "Content" in val:
+                # We're at dataset level
                 content = val["Content"]
                 dset = group.create_dataset(key, data=content)
 
@@ -76,10 +86,50 @@ class DictSaver:
                     dset.attrs[mk] = mv
 
             elif isinstance(val, dict):
-                self.save_annotated_dict(h5file, val, subpath)
+                # Recurse into subdicts
+                self.save_annotated_dict(val, subpath)
 
             else:
-                print(f"[Warning] Unsupported format for annotated key '{key}'")
+                print(f"[Warning] Unsupported format for key '{key}' — skipping")
+
+    # def save_annotated_dict(self, data_dict: dict, path: str = "/") -> None:
+    #     """
+    #     Recursively saves annotated content (with optional Metadata) into HDF5.
+
+    #     Expected structure:
+    #         {
+    #             "Notes": {
+    #                 "Content": "Some string or array",
+    #                 "Metadata": {
+    #                     "Author": "Julius",
+    #                     "Units": "m3/s, Pa, W, -"
+    #                 }
+    #             }
+    #         }
+    #     """
+    #     h5file = self.file
+    #     group = h5file.require_group(path)
+
+    #     for key, val in data_dict.items():
+    #         if key == "Metadata":
+    #             for mk, mv in val.items():
+    #                 group.attrs[mk] = mv
+    #             continue
+
+    #         subpath = f"{path}/{key}"
+
+    #         if isinstance(val, dict) and "Content" in val:
+    #             content = val["Content"]
+    #             dset = group.create_dataset(key, data=content)
+
+    #             for mk, mv in val.get("Metadata", {}).items():
+    #                 dset.attrs[mk] = mv
+
+    #         elif isinstance(val, dict):
+    #             self.save_annotated_dict(val, subpath)
+
+    #         else:
+    #             print(f"[Warning] Unsupported format for key '{key}' — skipping")
 
     def _convert_to_string_array(self, data):
         if isinstance(data, list):
