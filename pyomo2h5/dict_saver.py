@@ -42,30 +42,20 @@ class DictSaver:
                     f"[Warning] Skipping unsupported type at '{subpath}': {type(val)}"
                 )
 
-    def save_annotated_dict(self, data_dict: dict, path: str = "/") -> None:
+    def save_annotated_dict(
+        self, data_dict: dict, path: str = "/", float_precision: int = 2
+    ) -> None:
         """
         Recursively saves annotated content (with optional Metadata) into HDF5.
 
-        Supports nested structure like:
-            {
-                "Notes": {
-                    "Content": "Some string or array",
-                    "Metadata": { ... }
-                },
-                ...
-            }
+        Floats in datasets are rounded to `float_precision` decimals before saving.
 
-        And also:
-            {
-                "postprocessing": {
-                    "Exact Power Consumption": {
-                        "Content": ...,
-                        "Metadata": { ... }
-                    },
-                    ...
-                }
-            }
+        Parameters:
+            data_dict (dict): Data to save.
+            path (str): Root group path to start writing in HDF5.
+            float_precision (int): Number of decimal places for float rounding.
         """
+
         h5file = self.file
         group = h5file.require_group(path)
 
@@ -78,58 +68,31 @@ class DictSaver:
             subpath = f"{path}/{key}"
 
             if isinstance(val, dict) and "Content" in val:
-                # We're at dataset level
                 content = val["Content"]
+
+                # Round floats if it's a float, list of floats, or ndarray
+                if isinstance(content, float):
+                    content = round(content, float_precision)
+                elif isinstance(content, list):
+                    content = [
+                        round(x, float_precision) if isinstance(x, float) else x
+                        for x in content
+                    ]
+                elif isinstance(content, np.ndarray) and np.issubdtype(
+                    content.dtype, np.floating
+                ):
+                    content = np.round(content, float_precision)
+
                 dset = group.create_dataset(key, data=content)
 
                 for mk, mv in val.get("Metadata", {}).items():
                     dset.attrs[mk] = mv
 
             elif isinstance(val, dict):
-                # Recurse into subdicts
-                self.save_annotated_dict(val, subpath)
+                self.save_annotated_dict(val, subpath, float_precision=float_precision)
 
             else:
                 print(f"[Warning] Unsupported format for key '{key}' — skipping")
-
-    # def save_annotated_dict(self, data_dict: dict, path: str = "/") -> None:
-    #     """
-    #     Recursively saves annotated content (with optional Metadata) into HDF5.
-
-    #     Expected structure:
-    #         {
-    #             "Notes": {
-    #                 "Content": "Some string or array",
-    #                 "Metadata": {
-    #                     "Author": "Julius",
-    #                     "Units": "m3/s, Pa, W, -"
-    #                 }
-    #             }
-    #         }
-    #     """
-    #     h5file = self.file
-    #     group = h5file.require_group(path)
-
-    #     for key, val in data_dict.items():
-    #         if key == "Metadata":
-    #             for mk, mv in val.items():
-    #                 group.attrs[mk] = mv
-    #             continue
-
-    #         subpath = f"{path}/{key}"
-
-    #         if isinstance(val, dict) and "Content" in val:
-    #             content = val["Content"]
-    #             dset = group.create_dataset(key, data=content)
-
-    #             for mk, mv in val.get("Metadata", {}).items():
-    #                 dset.attrs[mk] = mv
-
-    #         elif isinstance(val, dict):
-    #             self.save_annotated_dict(val, subpath)
-
-    #         else:
-    #             print(f"[Warning] Unsupported format for key '{key}' — skipping")
 
     def _convert_to_string_array(self, data):
         if isinstance(data, list):
