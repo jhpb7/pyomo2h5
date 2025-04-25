@@ -13,9 +13,13 @@ class ConstraintTracker:
         self.constraint_log[cname] = constraint_obj
         self.counter += 1
 
-    def delete(self, cname):
-        if cname in self.constraint_log:
-            del self.constraint_log[cname]
+    def delete(self, constraint_obj):
+        if constraint_obj in self.constraint_log.values():
+            self.constraint_log = {
+                key: val
+                for key, val in self.constraint_log.items()
+                if val != constraint_obj
+            }
 
     def print_constraints(self):
         for name, expr in self.constraint_log.items():
