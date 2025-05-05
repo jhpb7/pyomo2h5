@@ -103,19 +103,43 @@ class InstanceSaver:
         description: str
         """
         dtype = [
+            ("name", "S200"),
+            ("index", "S200"),
             ("body", "S1000"),
             ("value", "f8"),
             ("lower_bound", "f8"),
             ("upper_bound", "f8"),
         ]
 
-        array = np.zeros(len(constraints), dtype=dtype)
+        rows = []
 
-        for i, (name, con) in enumerate(constraints.items()):
-            array["body"][i] = str(con.body).encode("ascii", "ignore")
-            array["value"][i] = pyo.value(con.body)
-            array["lower_bound"][i] = pyo.value(con.lower) if con.has_lb() else np.nan
-            array["upper_bound"][i] = pyo.value(con.upper) if con.has_ub() else np.nan
+        for name, con in constraints.items():
+            if con.is_indexed():
+                for index in con:
+                    cdata = con[index]
+                    rows.append(
+                        (
+                            name.encode("ascii", "ignore"),
+                            str(index).encode("ascii", "ignore"),
+                            str(cdata.body).encode("ascii", "ignore"),
+                            pyo.value(cdata.body),
+                            pyo.value(cdata.lower) if cdata.has_lb() else np.nan,
+                            pyo.value(cdata.upper) if cdata.has_ub() else np.nan,
+                        )
+                    )
+            else:
+                rows.append(
+                    (
+                        name.encode("ascii", "ignore"),
+                        b"",
+                        str(con.body).encode("ascii", "ignore"),
+                        pyo.value(con.body),
+                        pyo.value(con.lower) if con.has_lb() else np.nan,
+                        pyo.value(con.upper) if con.has_ub() else np.nan,
+                    )
+                )
+
+        array = np.array(rows, dtype=dtype)
 
         if dataset_name in group:
             del group[dataset_name]
