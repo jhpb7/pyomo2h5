@@ -45,7 +45,7 @@ If you plan a larger contribution, feel free to start a discussion first.
 
 This project is licensed under the terms of the MIT License
 
-# Install  / uninstall
+## Install  / uninstall
 
 Install using
 `pip install pyomo2h5`
