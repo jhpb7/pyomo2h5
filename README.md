@@ -28,7 +28,7 @@ If you want to directly install from GitHub (without cloning):
 pip install git+https://github.com/<your-username>/pyomo2h5.git
 ```
 ## Examples
-📓 Try it out: [Example Notebook](./test.ipynb)
+📓 Try it out: [Example Notebook](examples/example.ipynb)
 
 ## Authors
 
@@ -48,15 +48,14 @@ This project is licensed under the terms of the MIT License
 ## Install  / uninstall
 
 Install using
-`pip install pyomo2h5`
+`pip install .`
 
 To uninstall use
 `pip uninstall pyomo2h5`
 
 ## Contributing
-Contributions are welcome!  
-Please open an issue or submit a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
+Contributions are welcome!
+Please open an issue or submit a pull request.
 
 ## Funding
 The presented results were obtained within the research project ‘‘Algorithmic System Planning of Air Handling Units’’, Project No. 22289 N/1, funded by the program for promoting the Industrial Collective Research (IGF) of the German Ministry of Economic Affairs and Climate Action (BMWK), approved by the Deutsches Zentrum für Luft- und Raumfahrt (DLR). We want to thank all the participants of the working group for the constructive collaboration.
