@@ -1,4 +1,4 @@
-# Pyomo_to_hdf5
+# Pyomo2h5
 
 A Python library for efficiently saving **Pyomo models, results, and optimization components** to **HDF5 format**.  
 It provides utilities to handle Pyomo variables, expressions, parameters, and constraints, ensuring they are saved in a structured and accessible manner.
