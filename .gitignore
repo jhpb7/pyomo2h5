@@ -15,4 +15,5 @@ dist/
 build/
 *.mplstyle
 *:Zone.Identifier
+*[Zz]one.Identifier
 *.egg-info
